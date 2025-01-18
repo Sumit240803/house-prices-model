@@ -3,24 +3,104 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <script async
-    src="https://maps.googleapis.com/maps/api/js?key=KEY&loading=async&callback=initMap" defer>
-</script>
-
+    <title>Google Maps with Form</title>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC48OwXHgDrnKBgoQanWxh39FyO1NgweIQ&callback=initMap&libraries=marker&loading=async" defer></script>
 </head>
 <body>
     <h1>Google Maps</h1>
-  <div id="map" style="height: 500px; width: 100%;"></div>
-  <script>
-    
-    function initMap() {
-      const map = new google.maps.Map(document.getElementById("map"), {
-        center: { lat: -34.397, lng: 150.644 },
-        zoom: 8,
-      });
-    }
-    
-</script>
+    <div id="map" style="height: 500px; width: 100%;"></div>
+    <div>
+        <input id="address" type="text" value="Sydney, NSW">
+        <button onclick="codeAddress()">Geocode Address</button>
+    </div>
+    <form id="propertyForm">
+        <input type="number" id="bedrooms" placeholder="Number of Bedrooms">
+        <input type="number" id="bathrooms" placeholder="Number of Bathrooms">
+        <input type="number" id="lotArea" placeholder="Lot Area">
+        <input type="number" id="floors" placeholder="Number of Floors">
+        <input type="number" id="waterfront" placeholder="Waterfront Present (1/0)">
+        <input type="number" id="condition" placeholder="Condition of the House">
+        <input type="number" id="grade" placeholder="Grade of the House">
+        <input type="number" id="basementArea" placeholder="Area of the Basement">
+        <input type="number" id="latitude" placeholder="Latitude" readonly>
+        <input type="number" id="longitude" placeholder="Longitude" readonly>
+        <input type="number" id="livingArea" placeholder="Living Area Renovated">
+        <input type="number" id="lotAreaRenov" placeholder="Lot Area Renovated">
+        <input type="number" id="schoolsNearby" placeholder="Number of Schools Nearby">
+        <input type="number" id="distanceAirport" placeholder="Distance from the Airport">
+        <input type="number" id="yearsSinceRenov" placeholder="Years Since Renovation">
+        <button type="button" onclick="submitForm()">Submit</button>
+    </form>
+    <script>
+        let map;
+        let geocoder;
+
+        function initMap() {
+            map = new google.maps.Map(document.getElementById("map"), {
+                center: { lat: -34.397, lng: 150.644 },
+                zoom: 8,
+                mapId: "DEMO_MAP_ID"
+            });
+            geocoder = new google.maps.Geocoder();
+        }
+
+        function codeAddress() {
+            const address = document.getElementById('address').value;
+
+            geocoder.geocode({ 'address': address }, function (results, status) {
+                if (status === 'OK') {
+                    const location = results[0].geometry.location;
+                    map.setCenter(location);
+
+                    new google.maps.marker.AdvancedMarkerElement({
+                        map: map,
+                        position: location
+                    });
+
+                    document.getElementById('latitude').value = location.lat();
+                    document.getElementById('longitude').value = location.lng();
+                } else {
+                    alert('Geocode was not successful for the following reason: ' + status);
+                }
+            });
+        }
+
+        function submitForm() {
+            const formData = {
+                "number of bedrooms": [parseFloat(document.getElementById('bedrooms').value)],
+                "number of bathrooms": [parseFloat(document.getElementById('bathrooms').value)],
+                "lot area": [parseFloat(document.getElementById('lotArea').value)],
+                "number of floors": [parseFloat(document.getElementById('floors').value)],
+                "waterfront present": [parseInt(document.getElementById('waterfront').value)],
+                "condition of the house": [parseInt(document.getElementById('condition').value)],
+                "grade of the house": [parseInt(document.getElementById('grade').value)],
+                "Area of the basement": [parseFloat(document.getElementById('basementArea').value)],
+                "Lattitude": [parseFloat(document.getElementById('latitude').value)],
+                "Longitude": [parseFloat(document.getElementById('longitude').value)],
+                "living_area_renov": [parseFloat(document.getElementById('livingArea').value)],
+                "lot_area_renov": [parseFloat(document.getElementById('lotAreaRenov').value)],
+                "Number of schools nearby": [parseInt(document.getElementById('schoolsNearby').value)],
+                "Distance from the airport": [parseFloat(document.getElementById('distanceAirport').value)],
+                "Year since renovation": [parseInt(document.getElementById('yearsSinceRenov').value)]
+            };
+
+            fetch('https://localhost/predict', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Success:', data);
+                alert('Form submitted successfully!');
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to submit the form.');
+            });
+        }
+    </script>
 </body>
 </html>

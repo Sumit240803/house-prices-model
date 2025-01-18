@@ -5,7 +5,7 @@ app = Flask(__name__)
 
 model = joblib.load("xgb_model.joblib")
 
-@app.route("/data",methods =["POST"])
+@app.route("/predict",methods =["POST"])
 def hello():
     data = request.get_json()
     prediction_data = pd.DataFrame(data)
